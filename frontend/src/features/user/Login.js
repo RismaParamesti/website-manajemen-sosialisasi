@@ -52,7 +52,7 @@ const Login = () => {
             Siaga<span className="text-[#2A3382] font-bold"> Surabaya</span>
           </h1>
           <p className="mt-2 text-[#F36621]">
-            Bidang Pencegahan & Kesiapsagaan BPDB Kota Surabaya
+            Bidang Pencegahan & Kesiapsiagaan BPDB Kota Surabaya
           </p>
         </div>
       </div>

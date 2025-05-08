@@ -15,7 +15,7 @@ router.get("/", (req, res) => {
     e.leader,
     e.activity,
     DATE_FORMAT(e.time, '%d-%m-%Y') as date,
-    IF(e.SK IS NULL OR LENGTH(e.SK) = 0, '', 'SK-2022-08-10') AS suratK
+    IF(e.SK IS NULL OR LENGTH(e.SK) = 0, '', e.SK) AS suratK
   FROM education_units e
   JOIN subdistricts s ON e.subdistrict_id = s.id
   JOIN regions r ON s.region_id = r.id

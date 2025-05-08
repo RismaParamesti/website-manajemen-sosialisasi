@@ -1,8 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Pie } from "@ant-design/plots";
-import { jsPDF } from "jspdf";
 import * as XLSX from "xlsx";
-import "jspdf-autotable";
 import {
   DocumentTextIcon,
   DocumentArrowDownIcon,
@@ -11,67 +9,47 @@ import {
   CheckCircleIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
-
-// Dummy data
-const quantityData = [
-  {
-    name: "Galaxy Mall",
-    address: "Rungkut Asri",
-    region: "Timur",
-    subdistrict: "Rungkut",
-    suratK: "SK-2022-08-10",
-    date: "12-07-2022",
-  },
-  {
-    name: "Cito",
-    address: "Nginden",
-    region: "Timur",
-    subdistrict: "Sukolilo",
-    suratK: "",
-    date: "10-08-2022",
-  },
-];
+import axios from "axios";
 
 const Mall = () => {
-  const pieData = [
-    { type: "Pusat", value: 29388853.5 },
-    { type: "Timur", value: 26492684.4 },
-    { type: "Barat", value: 10451490.2 },
-    { type: "Selatan", value: 26492684.4 },
-    { type: "Utara", value: 10451490.2 },
-  ];
-
-  const pieConfig = {
-    appendPadding: 10,
-    data: pieData,
-    angleField: "value",
-    colorField: "type",
-    radius: 1,
-    label: {
-      type: "outer",
-      content: "{name} ({percentage})",
-    },
-    interactions: [{ type: "element-active" }],
-  };
-
+  const [healthFacilities, setHealthFacilities] = useState([]);
+  const [healthFacilitiesCount, setHealthFacilitiesCount] = useState({});
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [pieData, setPieData] = useState([]);
+  const [data, setData] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [isFilterVisible, setIsFilterVisible] = useState(false); // ditambahkan
+  const [rowsPerPage] = useState(5);
 
-  const filteredData = quantityData.filter((item) => {
-    return Object.values(item).some((val) =>
-      val.toLowerCase().includes(searchText.toLowerCase())
-    );
-  });
-
-  const openFilter = () => setIsFilterVisible(true);
-  const closeFilter = () => setIsFilterVisible(false);
+  // Filtering data based on the search text
+  const filteredData = data.filter((item) =>
+    Object.values(item).some((val) =>
+      String(val).toLowerCase().includes(searchText.toLowerCase())
+    )
+  );
 
   const currentData = filteredData.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   );
+
+  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+
+  useEffect(() => {
+    // Fetch mall data
+    axios
+      .get("http://localhost:5000/malls")
+      .then((response) => {
+        setData(response.data);
+        setHealthFacilities(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching Mall data:", error);
+      });
+  }, []);
+
+  const openFilter = () => setIsFilterVisible(true);
+  const closeFilter = () => setIsFilterVisible(false);
 
   const handleViewDetails = (id) => {
     console.log("View details for ID:", id);
@@ -84,26 +62,8 @@ const Mall = () => {
     XLSX.writeFile(workbook, "Mall.xlsx");
   };
 
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Data Mall", 10, 10);
-    const tableData = filteredData.map((item) => [
-      item.name,
-      item.address,
-      item.region,
-      item.subdistrict,
-      item.date,
-    ]);
-    doc.autoTable({
-      head: [["Nama", "Alamat", "Wilayah", "Kecamatan", "Tanggal"]],
-      body: tableData,
-    });
-    doc.save("Mall.pdf");
-  };
-
   return (
     <div className="min-h-screen bg-base-200 px-6 py-10 space-y-12">
-
       {/* Pie Chart */}
       <div className="bg-base-100 p-6 rounded-xl shadow-lg">
         <h3 className="text-center font-semibold text-xl mb-1">
@@ -112,7 +72,7 @@ const Mall = () => {
         <p className="text-center text-sm mb-4 text-gray-500">
           Klik untuk melihat detail
         </p>
-        <Pie {...pieConfig} />
+        <Pie {...pieData} />
       </div>
 
       {/* Table + Filter */}
@@ -142,13 +102,6 @@ const Mall = () => {
               <DocumentArrowDownIcon className="w-4 h-4 mr-1" />
               Excel
             </button>
-            <button
-              onClick={handleExportPDF}
-              className="btn btn-outline btn-error"
-            >
-              <DocumentTextIcon className="w-4 h-4 mr-1" />
-              PDF
-            </button>
           </div>
         </div>
 
@@ -168,44 +121,119 @@ const Mall = () => {
               </tr>
             </thead>
             <tbody>
-              {currentData.map((item, idx) => (
-                <tr key={idx}>
-                  <td className="text-center">{(currentPage - 1) * rowsPerPage + idx + 1}</td>
-                  <td className="text-center">{item.name}</td>
-                  <td className="text-center">{item.address}</td>
-                  <td className="text-center">{item.region}</td>
-                  <td className="text-center">{item.subdistrict}</td>
-                  <td>
-                    <div className="flex justify-center">
-                      {item.suratK ? (
-                        <CheckCircleIcon className="w-5 h-5 text-success" />
+              {currentData.map((item, idx) => {
+                console.log(item); // Add this to see the structure of the item
+                return (
+                  <tr key={idx}>
+                    <td className="text-center">
+                      {(currentPage - 1) * rowsPerPage + idx + 1}
+                    </td>
+                    <td className="text-center">
+                      {item.name || "Tidak ada data"}
+                    </td>
+                    <td className="text-center">
+                      {item.address || "Tidak ada data"}
+                    </td>
+                    <td className="text-center">
+                      {item.region || "Tidak ada data"}
+                    </td>
+                    <td className="text-center">
+                      {item.subdistrict || "Tidak ada data"}
+                    </td>
+                    <td className="text-center">
+                      {item.SK ? (
+                        <CheckCircleIcon className="w-5 h-5 text-success mx-auto" />
                       ) : (
-                        <XCircleIcon className="w-5 h-5 text-error" />
+                        <XCircleIcon className="w-5 h-5 text-error mx-auto" />
                       )}
-                    </div>
-                  </td>
-                  <td className="text-center">{item.date}</td>
-                  <td>
-                    <div className="flex justify-center">
-                      <button
-                        onClick={() => handleViewDetails(item.id)}
-                        className="btn btn-sm btn-info"
-                      >
+                    </td>
+                    <td className="text-center">
+                      {item.time
+                        ? new Date(item.time).toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })
+                        : "Tidak ada data"}
+                    </td>
+                    <td className="text-center">
+                      <button className="btn btn-sm btn-primary">
                         <EyeIcon className="w-5 h-5" />
                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {currentData.length === 0 && (
-                <tr>
-                  <td colSpan="8" className="text-center text-gray-400">
-                    No data found
-                  </td>
-                </tr>
-              )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="flex items-center justify-between mt-4">
+          {/* Prev Button */}
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="btn btn-sm btn-outline"
+          >
+            ← Prev
+          </button>
+
+          {/* Page Numbers */}
+          <div className="flex items-center gap-1">
+            {currentPage > 3 && (
+              <>
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  className="btn btn-sm btn-outline"
+                >
+                  1
+                </button>
+                {currentPage > 4 && (
+                  <span className="px-2 text-gray-500">...</span>
+                )}
+              </>
+            )}
+
+            {Array.from({ length: 5 }, (_, i) => {
+              const page = currentPage - 2 + i;
+              if (page < 1 || page > totalPages) return null;
+              return (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`btn btn-sm btn-outline ${
+                    page === currentPage ? "btn-active" : ""
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
+
+            {currentPage < totalPages - 2 && (
+              <>
+                {currentPage < totalPages - 3 && (
+                  <span className="px-2 text-gray-500">...</span>
+                )}
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  className="btn btn-sm btn-outline"
+                >
+                  {totalPages}
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Next Button */}
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="btn btn-sm btn-outline"
+          >
+            Next →
+          </button>
         </div>
       </div>
     </div>

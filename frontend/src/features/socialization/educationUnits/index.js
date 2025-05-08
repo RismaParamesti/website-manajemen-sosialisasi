@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Pie } from "@ant-design/plots";
-import { jsPDF } from "jspdf";
 import * as XLSX from "xlsx";
-import "jspdf-autotable";
 import {
   DocumentTextIcon,
   DocumentArrowDownIcon,
@@ -134,24 +132,6 @@ const EducationUnits = () => {
     XLSX.writeFile(workbook, "SatuanPendidikan.xlsx");
   };
 
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Data Satuan Pendidikan", 10, 10);
-    const tableData = filteredData.map((item) => [
-      item.name,
-      item.address,
-      item.region,
-      item.subdistrict,
-      item.suratK || "-",
-      item.date,
-    ]);
-    doc.autoTable({
-      head: [["Nama", "Alamat", "Wilayah", "Kecamatan", "SK", "Tanggal"]],
-      body: tableData,
-    });
-    doc.save("SatuanPendidikan.pdf");
-  };
-
   return (
     <div className="min-h-screen bg-base-200 px-6 py-10 space-y-12">
       {/* Top Summary Cards */}
@@ -278,13 +258,6 @@ const EducationUnits = () => {
             >
               <DocumentArrowDownIcon className="w-4 h-4 mr-1" />
               Excel
-            </button>
-            <button
-              onClick={handleExportPDF}
-              className="btn btn-outline btn-error"
-            >
-              <DocumentTextIcon className="w-4 h-4 mr-1" />
-              PDF
             </button>
           </div>
         </div>
