@@ -2,8 +2,6 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db"); // koneksi database
 
-
-
 // ========================
 // ENDPOINT JUMLAH TOTAL
 // ========================
@@ -11,7 +9,8 @@ const db = require("../config/db"); // koneksi database
 router.get("/health-facilities", (req, res) => {
   const sql = `SELECT COUNT(*) AS total_health_facilities FROM health_facilities`;
   db.query(sql, (err, rows) => {
-    if (err) return res.status(500).json({ message: "Error", error: err.message });
+    if (err)
+      return res.status(500).json({ message: "Error", error: err.message });
     res.json({ total_health_facilities: rows[0].total_health_facilities });
   });
 });
@@ -19,7 +18,8 @@ router.get("/health-facilities", (req, res) => {
 router.get("/education-units", (req, res) => {
   const sql = `SELECT COUNT(*) AS total_education_units FROM education_units`;
   db.query(sql, (err, rows) => {
-    if (err) return res.status(500).json({ message: "Error", error: err.message });
+    if (err)
+      return res.status(500).json({ message: "Error", error: err.message });
     res.json({ total_education_units: rows[0].total_education_units });
   });
 });
@@ -27,7 +27,8 @@ router.get("/education-units", (req, res) => {
 router.get("/apartments", (req, res) => {
   const sql = `SELECT COUNT(*) AS total_apartments FROM apartments`;
   db.query(sql, (err, rows) => {
-    if (err) return res.status(500).json({ message: "Error", error: err.message });
+    if (err)
+      return res.status(500).json({ message: "Error", error: err.message });
     res.json({ total_apartments: rows[0].total_apartments });
   });
 });
@@ -35,7 +36,8 @@ router.get("/apartments", (req, res) => {
 router.get("/malls", (req, res) => {
   const sql = `SELECT COUNT(*) AS total_malls FROM malls`;
   db.query(sql, (err, rows) => {
-    if (err) return res.status(500).json({ message: "Error", error: err.message });
+    if (err)
+      return res.status(500).json({ message: "Error", error: err.message });
     res.json({ total_malls: rows[0].total_malls });
   });
 });
@@ -43,7 +45,8 @@ router.get("/malls", (req, res) => {
 router.get("/hotels", (req, res) => {
   const sql = `SELECT COUNT(*) AS total_hotels FROM hotels`;
   db.query(sql, (err, rows) => {
-    if (err) return res.status(500).json({ message: "Error", error: err.message });
+    if (err)
+      return res.status(500).json({ message: "Error", error: err.message });
     res.json({ total_hotels: rows[0].total_hotels });
   });
 });
@@ -51,7 +54,8 @@ router.get("/hotels", (req, res) => {
 router.get("/offices", (req, res) => {
   const sql = `SELECT COUNT(*) AS total_offices FROM offices`;
   db.query(sql, (err, rows) => {
-    if (err) return res.status(500).json({ message: "Error", error: err.message });
+    if (err)
+      return res.status(500).json({ message: "Error", error: err.message });
     res.json({ total_offices: rows[0].total_offices });
   });
 });
@@ -59,7 +63,8 @@ router.get("/offices", (req, res) => {
 router.get("/public-housings", (req, res) => {
   const sql = `SELECT COUNT(*) AS total_public_housings FROM public_housings`;
   db.query(sql, (err, rows) => {
-    if (err) return res.status(500).json({ message: "Error", error: err.message });
+    if (err)
+      return res.status(500).json({ message: "Error", error: err.message });
     res.json({ total_public_housings: rows[0].total_public_housings });
   });
 });
@@ -67,7 +72,8 @@ router.get("/public-housings", (req, res) => {
 router.get("/urban-villages", (req, res) => {
   const sql = `SELECT COUNT(*) AS total_urban_villages FROM urban_villages`;
   db.query(sql, (err, rows) => {
-    if (err) return res.status(500).json({ message: "Error", error: err.message });
+    if (err)
+      return res.status(500).json({ message: "Error", error: err.message });
     res.json({ total_urban_villages: rows[0].total_urban_villages });
   });
 });
@@ -80,12 +86,12 @@ router.get("/group-by-year/:table", (req, res) => {
   const tableMap = {
     "health-facilities": "health_facilities",
     "education-units": "education_units",
-    "apartments": "apartments",
-    "malls": "malls",
-    "hotels": "hotels",
-    "offices": "offices",
+    apartments: "apartments",
+    malls: "malls",
+    hotels: "hotels",
+    offices: "offices",
     "public-housings": "public_housings",
-    "urban-villages": "urban_villages"
+    "urban-villages": "urban_villages",
   };
 
   const param = req.params.table;
@@ -96,20 +102,20 @@ router.get("/group-by-year/:table", (req, res) => {
   }
 
   const sql = `
-    SELECT dt.Tahun AS year, COUNT(*) AS value
+    SELECT YEAR(t.time) AS year, COUNT(*) AS value
     FROM ?? t
-    JOIN dimtime dt ON YEAR(t.time) = dt.Tahun
-    GROUP BY dt.Tahun
-    ORDER BY dt.Tahun
+    GROUP BY YEAR(t.time)
+    ORDER BY YEAR(t.time)
   `;
 
   db.query(sql, [tableName], (err, rows) => {
-    if (err) return res.status(500).json({ message: "Error", error: err.message });
+    if (err)
+      return res.status(500).json({ message: "Error", error: err.message });
     res.json({ data: rows });
   });
 });
 
-router.get('/fasilitas', (req, res) => {
+router.get("/fasilitas", (req, res) => {
   const query = `
     SELECT 
   r.name AS region,
@@ -150,13 +156,14 @@ LEFT JOIN (
 
   db.query(query, (err, results) => {
     if (err) {
-      console.error('Query error:', err);
-      return res.status(500).json({ error: 'Gagal mengambil data dari database' });
+      console.error("Query error:", err);
+      return res
+        .status(500)
+        .json({ error: "Gagal mengambil data dari database" });
     }
 
     res.json(results);
   });
 });
-
 
 module.exports = router;
